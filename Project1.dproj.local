@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.938,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Users\Administrator\Desktop\notify-msg\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.441,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.322,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.712,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.445,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.188,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.320,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.340,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.970,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.768,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.971,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.938,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.552,D:\msg_tip\msg_pc\reg_frm.pas=D:\msg_tip\msg_pc\frm_reg.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.164,C:\Users\Administrator\Desktop\notify-msg\u_debug.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.987,=C:\Users\Administrator\Desktop\notify-msg\u_debug.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.773,D:\msg_tip\msg_pc\frm_set.pas=D:\msg_tip\msg_pc\frm_write_data.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.265,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Users\Administrator\Desktop\notify-msg\Project1.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.938,C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\Users\Administrator\Desktop\notify-msg\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.260,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.857,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.074,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.687,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.708,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.746,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.518,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.651,C:\Users\Administrator\Desktop\notify-msg\Unit2.pas=C:\Users\Administrator\Desktop\notify-msg\reg_frm.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.552,D:\msg_tip\msg_pc\reg_frm.dfm=D:\msg_tip\msg_pc\frm_reg.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.843,D:\msg_tip\msg_pc\Unit1.pas=D:\msg_tip\msg_pc\frm_main.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.880,=C:\Users\Administrator\Desktop\notify-msg\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.220,C:\Users\Administrator\Desktop\notify-msg\Unit2.pas=C:\Users\Administrator\Desktop\notify-msg\utils.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.893,C:\Users\Administrator\Desktop\notify-msg\Unit2.pas=C:\Users\Administrator\Desktop\notify-msg\frm_set.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.774,D:\msg_tip\msg_pc\frm_set.dfm=D:\msg_tip\msg_pc\frm_write_data.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.546,D:\msg_tip\msg_pc\basic_info.pas=D:\msg_tip\msg_pc\frm_data_show.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.546,D:\msg_tip\msg_pc\basic_info.dfm=D:\msg_tip\msg_pc\frm_data_show.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.651,C:\Users\Administrator\Desktop\notify-msg\Unit2.dfm=C:\Users\Administrator\Desktop\notify-msg\reg_frm.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.894,C:\Users\Administrator\Desktop\notify-msg\Unit2.dfm=C:\Users\Administrator\Desktop\notify-msg\frm_set.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.932,C:\Users\Administrator\Desktop\notify-msg\Unit2.dfm=C:\Users\Administrator\Desktop\notify-msg\login_frm.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.125,D:\msg_tip\msg_pc\login_frm.dfm=D:\msg_tip\msg_pc\frm_login.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.125,D:\msg_tip\msg_pc\login_frm.pas=D:\msg_tip\msg_pc\frm_login.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.816,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.299,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.833,=C:\Users\Administrator\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.843,D:\msg_tip\msg_pc\Unit1.dfm=D:\msg_tip\msg_pc\frm_main.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.013,=C:\Users\Administrator\Desktop\notify-msg\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.904,=C:\Users\Administrator\Desktop\notify-msg\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.552,=C:\Users\Administrator\Desktop\notify-msg\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.932,C:\Users\Administrator\Desktop\notify-msg\Unit2.pas=C:\Users\Administrator\Desktop\notify-msg\login_frm.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.678,=C:\Users\Administrator\Desktop\notify-msg\basic_info.pas</Transaction>
+    <Transaction>2020-08-10 23:59:29.030,=D:\msg_tip\msg_pc\States.pas</Transaction>
+  </Transactions>
+</BorlandProject>

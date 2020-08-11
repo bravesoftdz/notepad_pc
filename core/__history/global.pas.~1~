@@ -1,0 +1,1405 @@
+﻿unit global;
+
+interface
+
+uses
+  classes, winapi.windows, zlib, system.sysutils, vcl.graphics, winapi.gdipapi,
+  winapi.gdipobj, idglobal, httpapp, vcl.extctrls, syncobjs, contnrs,
+  sqlitetable3, vcl.forms, MMSystem, vcl.Imaging.jpeg, vcl.Imaging.GIFImg,
+  system.netencoding, vcl.Imaging.pngimage, shlobj, shellapi, variants, tlhelp32,
+  winapi.ActiveX, ioutils, system.net.urlclient, system.net.httpclient,
+  EventManager, CommCtrl, system.net.httpclientcomponent, u_debug, vcl.Controls,
+  winapi.Messages, Wininet, inifiles, generics.collections, utils, httpPools,
+   uEvent,IdHTTP;
+//  type
+//  twm_enum=( wm_chat_msg = wm_user + 2014);
+
+const
+  wm_chat_msg = wm_user + 2014;
+  wm_room_chat_msg = wm_user + 2015;
+  wm_download_room_data = wm_user + 1974;
+  // 删除房间
+  wm_del_room = wm_user + 1975;
+  wm_Non_room_members = wm_user + 1976;
+
+const
+  // mainfrm 窗口使用
+  wm_net_disconnect_tip = wm_user + 2016; // 网路断开
+  wm_net_recover_tip = wm_user + 2017; // 无线恢复
+
+const
+  // 登录窗口使用
+  wm_login_finish = wm_user + 1971; // 定义消息
+  WM_CALLBACK_LOGIN = wm_user + 1972; // 定义消息
+
+var
+  tcp_host: string;
+  tcp_port: Integer;
+
+type
+  ptreenode_struct = ^ttreenode_struct;
+
+  ttreenode_struct =  record
+    isroot: boolean;
+    ischildnode: boolean;
+    node_id: string;
+    title_date: string;
+    body: string;
+    img_No: string;
+//    stopTip:Boolean;
+  end;
+
+
+  tevent_const = record
+    const
+      update_tree_msg = 201;
+
+    // 发送未读消息
+      unread_msg = 903;
+    // 发送房间未读消息
+      room_unread_msg = 904;
+      dis_group = 401;
+      exit_room = 408;
+      del_room = 409;
+      succ_login = 101;
+      connectError = 102;
+      loginError = 103;
+      loginTimeOut = 104;
+      forceOffline = 501;
+      msgNotifyStop = 301;
+      MsgNotifyTip = 302;
+      reUserLogin = 502;
+      refresh_group_info = 402;
+      room_state_change_notify = 403;
+      update_org_notify = 404;
+  end;
+
+  tconst = record
+    const
+      def_heartbeatinterval = 60; // 默认心跳间隔时间（单位：秒）
+    const
+      oss = 'http://39.105.2.165:12345/objects/';
+    var
+      event_const: tevent_const;
+
+    // nsq二维码服务器
+    var
+      nsq_host: string;
+
+    //
+    var
+    // 账号注册地址
+      web_register: string;
+
+    // web_rest_host = 'http://39.105.2.165:9011';
+
+      web_rest_host: string;
+
+    //
+    // 头像存储
+      store_host: string;
+      file_url_upload: string;
+      head_url_upload: string;
+      head_url_download: string;
+    const
+      APPFILE_Sound_Message_wav = 'ShakeWindow.wav';
+    const
+    // 子文件夹
+      userroot_subdir_faces = 'Faces\';
+      userroot_subdir_chatfiles = 'ChatFiles\';
+      font_name = 'Tahoma';
+    const
+      errorcode_ok = 0;
+      errorcode_unknown = 1;
+      errorcode_unknownversion = 2;
+      errorcode_invalidparams = 3;
+      errorcode_exists = 4;
+      errorcode_notexists = 5;
+      errorcode_timeout = 6;
+      errorcode_logined = 7;
+      errorcode_notlogined = 8;
+      errorcode_noaccount = 9;
+      errorcode_pwderror = 10;
+      errorcode_userlock = 11;
+      errorcode_tokenerr = 12;
+      errorcode_overstep = 13;
+      errorcode_nopermission = 14;
+    const
+      TYPE_TEXT = 'text'; // 发来文字
+      TYPE_IMAGE = 'image'; // 发来图片
+      TYPE_FILE = 'file'; // 发来文件
+      TYPE_VOICE = 'voice'; // 发来语音
+      TYPE_VIDEO = 'video'; // 发来视频
+      TYPE_LOCATE = 'locate'; // 坐标
+
+      type_append_group_members = 'append_group_members'; // 群组追加成员
+      type_exit_group = 'exit_group'; // 退出群组
+      type_dis_group = 'dis_group'; // 群组解散
+
+  public
+    function users_dir: string;
+    function sound_dir(): string;
+  end;
+
+  tutils = record
+  public
+    function get_separator_bitmap(abmp: vcl.graphics.tbitmap; aindex: Integer; acount: Integer = -1; freebmp: boolean = true): tbitmap;
+    function hextoint(str: ansistring): word; inline;
+  public
+    function newuuid: string;
+    function FindForm(AFormName: string): TForm;
+    procedure GrayBitmap(ABitmap: tbitmap; Value: Integer);
+    procedure playsound_message;
+    procedure draw_circle(a, r, g, b: Byte; targetcanvas: tcanvas; x, y: Integer; xwidth, yheight: Integer; content: string; fontsize: Integer; fontname: string);
+    procedure qi_pao_tip(h: HWND; text, cap: string; IconType: Integer = 1; t: Integer = 1000; left: Integer = 0; top: Integer = 0);
+  public
+    function net_connected: boolean;
+  public
+    procedure transparent_draw(dstdc: hdc; arect: trect; aoffset: Integer; abmp: tbitmap; freebmp: boolean = true);
+  end;
+
+  // 头像
+  thead = record
+    temote_filename: tdictionary<string, string>;
+  private
+    function get_separator_bitmap(abmp: tbitmap; aindex: Integer; freebmp: boolean = true): tbitmap; inline;
+  public
+    function getimage(file_name: string): tgraphic;
+  public
+    function get_resbmp(filename: string; index: Integer): tbitmap;
+  end;
+
+  // 配置文件
+  tconfigdb<k, v> = record
+    sldb: tsqlitedatabase;
+    sldbpath: string;
+  public
+    procedure dbinit;
+    function getint(key: string): Integer;
+    procedure setstring(key, val: string);
+    procedure delky(key:string);
+    procedure setint(key: string; val: Integer);
+    function getstring(key: string): string;
+  public
+  end;
+
+  tdb = record
+    kv: tconfigdb<string, integer>;
+  end;
+
+  // 扫码解包
+  tqrcode_msg_unpack = record
+    uid, // 发送者id
+    pwd: string;
+  end;
+
+  ppull_room_msg_unpack = ^tpull_room_msg_unpack;
+
+  // '{"room_id":"7","senderid":"2","nick":"陈涛","msgtype":"text","content":"44","sendtime":"2020-03-15 18:35"}'
+  // 群聊解码
+  tpull_room_msg_unpack = record
+    room_id, // 群组 id
+    room_name, senderid, // 发送者id
+    nick, // 发送者昵称
+    msgtype: string; // img groupchat file
+    content, sendtime: string;
+  end;
+
+  // 房间未读消息
+  tun_read_msg_room = record
+    code: Integer;
+    msg: string;
+    data: TArray<tpull_room_msg_unpack>;
+  end;
+
+  ppull_msg_unpack = ^tpull_msg_unpack;
+
+  // 单聊解码
+  tpull_msg_unpack = record
+    senderid, // 发送者id
+    nick, // 发送者昵称
+    msgtype, // 视频语音
+    content, sendtime: string;
+    msgid: string;
+  end;
+
+  // 未读消息
+  tun_read_msg = record
+    code: Integer;
+    msg: string;
+    data: TArray<tpull_msg_unpack>;
+  end;
+
+  // 未读消息 数目
+  tun_read_count_unpack = record
+    count: Integer;
+    fromid: string;
+  end;
+
+  // 推送数据类型
+  tpush_pack = record
+    pullcode: Byte; // $1单聊 $2群聊 $3 系统  $14踢出
+    msg_detail: string; // 聊天数据
+    fromid: string;
+  end;
+
+  txxjjcc = record
+    fromid: string; // 未读消息发送者
+  end;
+
+  txxjj = record
+    code: Integer;
+    msg: string;
+    data: TArray<txxjjcc>;
+  end;
+
+  // ------------------------------
+  // 组织架构
+  temploye = record
+    user_id: string;
+    nickname: string;
+    sign: string;
+    avatar: string;
+    email: string;
+    phone: string;
+    duty: string;
+    pwd: string;
+    token: string;
+  end;
+
+  tdepartments = record
+    department: string;
+    department_id: string;
+    list: TArray<temploye>;
+  end;
+
+  tregions = record
+    region_id: string;
+    region: string;
+    list: TArray<tdepartments>;
+  end;
+
+  torganization_struct = record
+    code: Integer;
+    msg: string;
+    data: TArray<tregions>;
+  end;
+
+  /// /----------------------------------------------------
+
+  troom_info = record
+    room_id, room_name, notice, creator_id, owner_id, members: string;
+    createtime: Double;
+    is_enable: Integer;
+    avatar: string;
+  end;
+
+  trawdata = record
+  public
+
+    // 部门成员
+    employees: tdictionary<string, temploye>;
+
+    // 群组房间列表
+    rooms_list: tdictionary<string, troom_info>;
+
+    // 信息更新
+    procedure update_employee(v: temploye);
+    procedure update_room(v: troom_info);
+    procedure del_room(groupid: string);
+    procedure add_room_member(roomid, user_id: string);
+  public
+    function get_employee(uid: string): temploye;
+    function get_room(groupid: string): troom_info;
+  end;
+
+  // 消息盒子管理接口
+  tmsgbox_mgr = record
+    mulchat: string; // 临时多人对话
+
+//    group_msg_box: TList<tpull_room_msg_unpack>;
+  end;
+
+  tcloud = record
+  public
+    function encode(data: string): string;
+    function decode(data: string): string;
+  public
+    function api_host: string;
+  public
+    function get_file_callback(xx: tobject; http_file, user_id: string; msg_id: string; down_succ: TNotifySucc_download; down_err: TNotifyFail_download): string;
+  public
+    lock: tcriticalsection;
+    function sync_put(file_path: string): Integer;
+    function sync_get(url: string): string;
+    function get_file(http_file: string; user_id: string): string;
+  end;
+
+  // 群组追加成员
+  tgroup_append_members = record
+    old_members: string; // 老成员
+    new_members: string; // 要追加的新成员
+  end;
+
+  tglobal_interface = record
+  public
+    g_pulldata: TQueue<tpush_pack>;
+    g_pulldata_lock: TRTLCriticalSection;
+  public
+    http_pools: Thttp_pools;
+    msgbox_mgr: tmsgbox_mgr;
+    rawdata: trawdata;
+    mLoginUser: temploye;
+  public
+    cloud: tcloud;
+    cconst: tconst;
+    uutils: tutils;
+    imp_head: thead;
+    db: tdb;
+    blacklist: TStringList;
+    event_manager: tevent_manager;
+  public
+    // 登录状态 ：0 离线  1已经登录
+    login_state: record
+      tcp_connected: boolean;
+      logined: boolean;
+    end;
+  public
+    procedure create();
+    procedure destroy;
+  end;
+
+var
+  g_tmp_posion_x, g_tmp_posion_y: Integer;
+
+
+implementation
+
+uses
+  varcoreunit;
+
+{ TRecord }
+procedure tglobal_interface.create;
+begin
+  blacklist := TStringList.Create;
+  g_global.imp.db.kv.dbinit;
+
+  event_manager := tevent_manager.create;
+end;
+
+procedure tglobal_interface.destroy;
+begin
+  g_global.imp.db.kv.sldb.free;
+  freeandnil(event_manager);
+  blacklist.Free;
+end;
+
+function tconst.sound_dir: string;
+begin
+  result := extractfilepath(paramstr(0)) + 'res\Sound\';
+end;
+
+function tconst.users_dir: string;
+begin
+  result := extractfilepath(paramstr(0)) + 'Users\';
+end;
+
+{ TODO -oOwner -cGeneral : demo:  var
+  cc: string;
+  begin
+  var ustr := '蝙蝠侠：黑暗骑士abc\/.。， a http://www.baidu.com';
+  cc := EncodeUniCode(ustr);
+  Memo1.Lines.Add(cc);
+  Memo1.Lines.Add(tnetencoding.url.encode(ustr, [], []));
+  Caption := UnicodeToChinese(cc);
+
+  url 编码解码
+  result := tnetencoding.url.encode(data, [], []);
+  result := tnetencoding.url.decode(data);
+}
+
+function tcloud.encode(data: string): string;
+begin
+  result := tnetencoding.url.encode(data, [], []);
+end;
+
+function tcloud.decode(data: string): string;
+begin
+  result := tnetencoding.url.decode(data);
+end;
+
+function tcloud.api_host(): string;
+begin
+  result := g_global.imp.cconst.web_rest_host;
+end;
+
+function tcloud.sync_get(url: string): string;
+var
+  idp: tnethttpclient;
+  http_stream: tstringstream;
+begin
+  result := '-1';
+  try
+    idp := g_global.imp.http_pools.pools.pop;
+    if idp <> nil then
+    begin
+      http_stream := tstringstream.create('', TEncoding.UTF8);
+      g_global.imp.cloud.lock.enter;
+      idp.get(url, http_stream);
+      g_global.imp.cloud.lock.leave;
+      g_global.imp.http_pools.pools.push(idp);
+      result := http_stream.datastring.Replace('\r\n', '').Replace('\"', '"').Trim;
+      FreeAndNil(http_stream);
+
+    end;
+  except
+    result := '-1';
+    if http_stream <> nil then
+      FreeAndNil(http_stream);
+    if idp <> nil then
+      g_global.imp.http_pools.pools.push(idp);
+  end;
+
+end;
+
+function tcloud.sync_put(file_path: string): Integer;
+var
+  idp: tnethttpclient;
+var
+  mem: TMemoryStream;
+begin
+  result := 404;
+  if file_path = '' then
+    Exit;
+
+  try
+    idp := g_global.imp.http_pools.pools.pop;
+    if idp <> nil then
+    begin
+
+      mem := TMemoryStream.create;
+      mem.LoadFromFile(file_path);
+      mem.Position := 0;
+
+      file_path := file_path.Substring(file_path.LastIndexOf('\') + 1);
+      g_global.imp.cloud.lock.enter;
+      result := idp.Put(g_global.imp.cconst.oss + file_path, mem).StatusCode;
+      g_global.imp.cloud.lock.leave;
+      g_global.imp.http_pools.pools.push(idp);
+
+      if mem <> nil then
+        freeandnil(mem);
+    end;
+  except
+    result := 404;
+    if mem <> nil then
+      freeandnil(mem);
+
+    if idp <> nil then
+      g_global.imp.http_pools.pools.push(idp);
+  end;
+
+end;
+
+//
+function tcloud.get_file_callback(xx: tobject; http_file: string; user_id: string; msg_id: string; down_succ: TNotifySucc_download; down_err: TNotifyFail_download): string;
+var
+  return: string;
+  prex: string;
+begin
+
+  result := './res/default.png';
+  if (http_file = '') or ((not http_file.Contains('http://')) and (not http_file.Contains('https://'))) then
+  begin
+    if Assigned(down_succ) then
+      down_succ(xx, [result, msg_id]);
+    exit;
+
+  end;
+
+  prex := http_file.Substring(http_file.LastIndexOf('/') + 1);
+
+  if FileExists(g_global.imp.cconst.users_dir + user_id + '\' + prex) then
+  begin
+    result := g_global.imp.cconst.users_dir + user_id + '\' + prex;
+    if Assigned(down_succ) then
+      down_succ(xx, [result, msg_id]);
+    Exit;
+  end;
+
+  var ht: TThread;
+  ht := TThread.CreateAnonymousThread(
+    procedure
+    var
+
+      url: string;
+      hp: tnethttpclient;
+      LResponse: IHTTPResponse;
+
+      ms: TMemoryStream;
+    begin
+      url := http_file;
+      http_file := http_file.Substring(http_file.LastIndexOf('/') + 1);
+      ms := TMemoryStream.create;
+      return := '';
+      try
+
+        hp := g_global.imp.http_pools.pools.pop;
+
+           ms.Clear;
+           ms.Position:=0;
+
+
+        if hp.get(url, ms).StatusCode = 200 then
+        begin
+              ms.Position := 0;
+          if DirectoryExists(g_global.imp.cconst.users_dir + user_id) then
+          begin
+            ms.savetofile(g_global.imp.cconst.users_dir + user_id + '\' + http_file);
+            return := g_global.imp.cconst.users_dir + user_id + '\' + http_file;
+          end
+          else
+          begin
+
+            if ForceDirectories(g_global.imp.cconst.users_dir + user_id) then
+            begin
+              ms.savetofile(g_global.imp.cconst.users_dir + user_id + '\' + http_file);
+              return := g_global.imp.cconst.users_dir + user_id + '\' + http_file;
+            end;
+          end;
+          if Assigned(down_succ) then
+            down_succ(xx, [return, msg_id]);
+        end;
+        g_global.imp.http_pools.pools.push(hp);
+
+        freeandnil(ms);
+//        freeandnil(idhttp1);
+      except
+        if hp <> nil then
+          g_global.imp.http_pools.pools.push(hp);
+        if ms <> nil then
+          freeandnil(ms);
+        return := './res/default.png';
+//        if idhttp1<>nil then
+//        freeandnil(idhttp1);
+        if Assigned(down_succ) then
+          down_succ(xx, [return, msg_id]);
+      end;
+    end);
+
+  ht.Start;
+
+//  WaitForSingleObject(ht.Handle, INFINITE);
+//  result := return;
+
+end;
+
+function tcloud.get_file(http_file: string; user_id: string): string;
+var
+  return: string;
+  prex: string;
+begin
+  Debug.Show('下载文件::::::::::' + http_file + '   ' + user_id);
+
+  result := './res/default.png';
+  if (http_file = '') or ((not http_file.Contains('http://')) and (not http_file.Contains('https://'))) then
+  begin
+
+    exit;
+
+  end;
+
+  prex := http_file.Substring(http_file.LastIndexOf('/') + 1);
+
+  if FileExists(g_global.imp.cconst.users_dir + user_id + '\' + prex) then
+  begin
+    result := g_global.imp.cconst.users_dir + user_id + '\' + prex;
+
+    Exit;
+  end;
+
+  var ht: TThread;
+  ht := TThread.CreateAnonymousThread(
+    procedure
+    var
+
+      url: string;
+      hp: tnethttpclient;
+    var
+      ms: TMemoryStream;
+    begin
+
+      url := http_file;
+      http_file := http_file.Substring(http_file.LastIndexOf('/') + 1);
+      ms := TMemoryStream.create;
+      return := '';
+      try
+
+        hp := g_global.imp.http_pools.pools.pop;
+
+        if hp.get(url, ms).StatusCode = 200 then
+        begin
+          ms.Position := 0;
+          if DirectoryExists(g_global.imp.cconst.users_dir + user_id) then
+          begin
+            ms.savetofile(g_global.imp.cconst.users_dir + user_id + '\' + http_file);
+            return := g_global.imp.cconst.users_dir + user_id + '\' + http_file;
+          end
+          else
+          begin
+
+            if ForceDirectories(g_global.imp.cconst.users_dir + user_id) then
+            begin
+              ms.savetofile(g_global.imp.cconst.users_dir + user_id + '\' + http_file);
+              return := g_global.imp.cconst.users_dir + user_id + '\' + http_file;
+            end;
+          end;
+        end;
+        g_global.imp.http_pools.pools.push(hp);
+
+        freeandnil(ms);
+
+      except
+        if hp <> nil then
+          g_global.imp.http_pools.pools.push(hp);
+        if ms <> nil then
+          freeandnil(ms);
+        return := './res/default.png';
+
+      end;
+    end);
+
+  ht.Start;
+
+  WaitForSingleObject(ht.Handle, INFINITE);
+  result := return;
+
+end;
+
+
+
+//
+
+{$ENDREGION}
+
+procedure tutils.draw_circle(a, r, g, b: Byte; targetcanvas: tcanvas; x, y: Integer; xwidth, yheight: Integer; content: string; fontsize: Integer; fontname: string);
+begin
+  var gg: tgpgraphics;
+  var p: tgppen;
+  var bb: tgpbrush;
+
+  gg := tgpgraphics.create(targetcanvas.Handle);
+  // p := tgppen.create(makecolor(255, 50, 150, 250), 2);
+  // b := tgpsolidbrush.create(makecolor(255, 50, 150, 250)); // 50 150 250
+
+  p := tgppen.create(makecolor(a, r, g, b), 2);
+  bb := tgpsolidbrush.create(makecolor(a, r, g, b)); // 50 150 250
+
+  gg.setsmoothingmode(smoothingmodehighquality); // 抗锯齿
+  try
+    gg.fillellipse(bb, makerect(x, y + 2, xwidth, yheight));
+    gg.drawellipse(p, x, y + 2, xwidth, yheight);
+
+    if content = '群' then
+      text_outa(content, targetcanvas, x + 13, y + 15, fontsize, fontname, 253, 253, 253)
+    else
+      text_outa(content, targetcanvas, x + 6, y + 15, fontsize, fontname, 253, 253, 253);
+
+  finally
+    p.free;
+    bb.free;
+    gg.free;
+  end;
+
+end;
+
+
+// h:窗体中控件的句柄（用在某个控件上提示消息）（要调用的控件句柄）
+
+// text:要提示的文本
+
+// cap:提示框上的标题
+
+// IconType:提示框上显示的图标（共三个值。1、2、3分别为提示、警告、错误s）
+
+// t:消息停留的时间(以毫秒计算)
+
+// left: 消息框偏离控件的左距离，设为0则表示没有
+
+// top: 消息框偏离控件的顶距离，设为0则表示没有
+procedure tutils.qi_pao_tip(h: HWND; text, cap: string; IconType: Integer = 1; t: Integer = 1000; left: Integer = 0; top: Integer = 0);
+var
+  r: trect; // 是一个记录（Record），保存了矩形的（左上角右下角两个点）4个坐标或2个点的值。
+  hTooltip: Cardinal; // Cardinal是无符号32位整数 ，取值0到4294967295范围。
+  ti: TToolInfo;
+begin
+  hTooltip := CreateWindow('Tooltips_Class32', nil, $40, 0, 0, 0, 0, 0, 0, hInstance, nil);
+  if hTooltip <> 0 then
+  begin
+    SetWindowPos(hTooltip, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE); // 让气泡在最前面
+    ti.cbSize := SizeOf(TToolInfo);
+    ti.uFlags := TTF_IDISHWND or TTF_TRACK;
+    ti.hInst := hInstance;
+    ti.lpszText := pchar(text);
+    SendMessage(hTooltip, TTM_ADDTOOL, 0, Integer(@ti));
+    if (IconType > 3) or (IconType < 0) then
+      IconType := 0;
+    SendMessage(hTooltip, wm_user + 32, IconType, Integer(pansichar(cap)));
+    GetWindowRect(h, r); // 获取指定控件的坐标,R.Right 、R.Left、R.Bottom、R.Top
+    r.left := r.left - left;
+    r.top := r.top - top;
+
+    // 定义气泡位置
+    SendMessage(hTooltip, TTM_TRACKPOSITION, 0, MAKELONG((r.Right - r.left) div 2 + r.left, (r.Bottom - r.top) div 2 + r.top));
+    SendMessage(hTooltip, TTM_TRACKACTIVATE, Integer(true), Integer(@ti));
+    sleep(t);
+    DestroyWindow(hTooltip);
+  end;
+end;
+
+procedure tutils.playsound_message;
+begin
+  var AFileName := g_global.imp.cconst.sound_dir + g_global.imp.cconst.APPFILE_Sound_Message_wav;
+  MMSystem.PlaySound(pchar(AFileName), 0, SND_FILENAME or SND_ASYNC);
+
+end;
+
+function tutils.hextoint(str: ansistring): word;
+var
+  i, Value: word;
+  pos: word;
+begin
+  Value := 0;
+  pos := length(str);
+  for i := 1 to pos do
+  begin
+    case str[i] of
+      'f', 'F':
+        Value := Value * 16 + 15;
+      'e', 'E':
+        Value := Value * 16 + 14;
+      'd', 'D':
+        Value := Value * 16 + 13;
+      'c', 'C':
+        Value := Value * 16 + 12;
+      'b', 'B':
+        Value := Value * 16 + 11;
+      'a', 'A':
+        Value := Value * 16 + 10;
+      '0'..'9':
+        Value := Value * 16 + ord(str[i]) - ord('0');
+    else
+      result := Value;
+      Exit;
+
+    end;
+    result := Value;
+  end;
+
+end;
+
+{
+  函数功能:BMP 转灰度
+  参    数:无
+  返 回 值:无
+  作    者:郭兆文
+  修改时间:
+}
+procedure tutils.GrayBitmap(ABitmap: tbitmap; Value: Integer);
+var
+  Pixel: PRGBTriple;
+  w, h: Integer;
+  x, y: Integer;
+  avg: Integer;
+begin
+  ABitmap.PixelFormat := pf24Bit;
+  w := ABitmap.Width;
+  h := ABitmap.Height;
+  for y := 0 to h - 1 do
+  begin
+    Pixel := ABitmap.ScanLine[y];
+    for x := 0 to w - 1 do
+    begin
+      avg := ((Pixel^.rgbtRed + Pixel^.rgbtGreen + Pixel^.rgbtBlue) div 3) + Value;
+      if avg > 240 then
+        avg := 240;
+      Pixel^.rgbtRed := avg;
+      Pixel^.rgbtGreen := avg;
+      Pixel^.rgbtBlue := avg;
+      Inc(Pixel);
+    end;
+  end;
+end;
+
+function tutils.FindForm(AFormName: string): TForm;
+var
+  i: Integer;
+begin
+  result := nil;
+  for i := 0 to Screen.FormCount - 1 do
+  begin
+    if Screen.forms[i].Name = AFormName then
+    begin
+      result := Screen.forms[i];
+      break;
+    end;
+  end;
+end;
+
+function tutils.get_separator_bitmap(abmp: vcl.graphics.tbitmap; aindex: Integer; acount: Integer = -1; freebmp: boolean = true): tbitmap;
+var
+  bmp1: vcl.graphics.tbitmap;
+begin
+
+  bmp1 := vcl.graphics.tbitmap.create();
+  result := bmp1;
+  if abmp = nil then
+    Exit;
+  if acount = -1 then
+    bmp1.Width := abmp.Height
+  else
+    bmp1.Width := abmp.Width div acount;
+
+  bmp1.Height := abmp.Height;
+
+  bitblt(bmp1.canvas.Handle, 0, 0, bmp1.Width, bmp1.Height, abmp.canvas.Handle, aindex * bmp1.Width, 0, srccopy);
+  if freebmp then
+    abmp.free;
+
+end;
+
+function calcvcenter(r: trect; h1: Integer): Integer;
+begin
+  result := (r.Bottom - r.top - h1) div 2 + r.top;
+end;
+{
+  函数功能:画一个图片在一个RECT的中心位置
+  参    数:无
+  返 回 值:无
+  修改时间:
+}
+
+procedure tutils.transparent_draw(dstdc: hdc; arect: trect; aoffset: Integer; abmp: tbitmap; freebmp: boolean = true);
+begin
+  if abmp = nil then
+    Exit;
+  transparentblt(dstdc, arect.left + aoffset, calcvcenter(arect, abmp.Height), abmp.Width, abmp.Height, abmp.canvas.Handle, 0, 0, abmp.Width, abmp.Height, clwhite);
+  if freebmp then
+    abmp.free;
+end;
+
+function tutils.net_connected: boolean;
+/// 网络是否连通
+const
+  // local system uses a modem to connect to the Internet.
+  INTERNET_CONNECTION_MODEM = 1;
+  // local system uses a local area network to connect to the Internet.
+  INTERNET_CONNECTION_LAN = 2;
+  // local system uses a proxy server to connect to the Internet.
+  INTERNET_CONNECTION_PROXY = 4;
+  // local system's modem is busy with a non-Internet connection.
+  INTERNET_CONNECTION_MODEM_BUSY = 8;
+var
+  dwConnectionTypes: DWORD;
+begin
+  result := false;
+  dwConnectionTypes := INTERNET_CONNECTION_MODEM + INTERNET_CONNECTION_LAN + INTERNET_CONNECTION_PROXY;
+  result := InternetGetConnectedState(@dwConnectionTypes, 0);
+end;
+
+function tutils.newuuid(): string;
+var
+  tmpguid: tguid;
+  r: hresult;
+begin
+  randomize;
+  repeat
+    r := cocreateguid(tmpguid);
+    result := guidtostring(tmpguid);
+    result := stringreplace(result, '-', '', [rfreplaceall]);
+    system.delete(result, 1, 1);
+    system.delete(result, length(result), 1);
+  until r = s_ok;
+end;
+
+{ TConst }
+
+{ THead }
+
+function gshortname(v: string): string; inline;
+begin
+  if v.length > 3 then
+    result := '😊'
+  else if (v.length = 2) or (v.length = 1) then
+    result := v
+  else if v.length = 3 then
+    result := v.Substring(1);
+end;
+
+{ TConfigDb }
+
+procedure tconfigdb<k, v>.dbinit;
+var
+  ssql, finitsql: string;
+begin
+
+  sldb := tsqlitedatabase.create('./db/config.db');
+  try
+
+    if sldb.tableexists('testTable') then
+      Exit;
+    begin
+     // ssql := 'DROP TABLE testtable';
+     // sldb.execsql(ssql);
+    end;
+
+    ssql := 'CREATE TABLE testtable ([ID] INTEGER PRIMARY KEY,';
+    ssql := ssql + '[key] VARCHAR (255),[val] VARCHAR (255));';
+
+    sldb.execsql(ssql);
+
+    sldb.execsql('CREATE INDEX TestTableName ON [testtable]([key]);');
+
+
+  finally
+
+  end;
+end;
+//
+
+procedure tconfigdb<k, v>.delky(key: string);
+begin                 //DELETE FROM Person WHERE LastName = 'Wilson'
+    var   ssql := format('delete from testtable where key="%s" ', [key]);
+    sldb.execsql(ssql);
+
+
+
+end;
+
+function tconfigdb<k, v>.getint(key: string): Integer;
+begin
+  result := strtointdef(getstring(key), 0);
+
+end;
+
+function tconfigdb<k, v>.getstring(key: string): string;
+var
+  ssql: string;
+  sltb: tsqlitetable;
+begin
+  result := '-1';
+  ssql := format('select val from testtable where key=%s', [quotedstr(key)]);
+  sltb := sldb.gettable(ssql);
+  if sltb.count > 0 then
+    result := sltb.fieldasstring(sltb.fieldindex['val']);
+
+  sltb.free;
+end;
+//
+
+procedure tconfigdb<k, v>.setint(key: string; val: Integer);
+begin
+
+  setstring(key, inttostr(val));
+end;
+
+procedure tconfigdb<k, v>.setstring(key, val: string);
+var
+  ssql: string;
+  sltb: tsqlitetable;
+begin
+
+  ssql := format('select * from testtable where key=%s', [quotedstr(key)]);
+  sltb := sldb.gettable(ssql);
+  if sltb.count > 0 then
+  begin
+    ssql := format('update testtable set val="%s" where key="%s"', [val, key]);
+    sldb.execsql(ssql);
+
+  end
+  else
+  begin
+    ssql := format('insert into testtable (key,val) values ("%s","%s")', [key, val]);
+    sldb.execsql(ssql);
+  end;
+  sltb.free;
+
+end;
+
+{ TPic }
+
+function thead.getimage(file_name: string): tgraphic;
+
+  function GetImgExt(AStream: TMemoryStream): string;
+  var
+    Flag: word;
+  begin
+    result := '';
+    if AStream.size < 2 then
+      Exit;
+    AStream.Position := 0;
+    AStream.ReadBuffer(Flag, SizeOf(word));
+    case Flag of
+      $4D42:
+        begin // bmp
+          result := '.bmp';
+        end;
+      $4947:
+        begin // gif
+          result := '.gif';
+        end;
+      $D8FF:
+        begin // JPg
+          result := '.jpg';
+        end;
+      $5089:
+        begin // png
+          result := '.png';
+        end;
+    end;
+    AStream.Position := 0;
+
+  end;
+
+  function GetImgType(AStream: TMemoryStream): TGraphicClass;
+  var
+    Flag: word;
+  begin
+    result := nil;
+    if AStream.size < 2 then
+      Exit;
+    AStream.Position := 0;
+    AStream.ReadBuffer(Flag, SizeOf(word));
+    case Flag of
+      $4D42:
+        begin // bmp
+          result := tbitmap;
+        end;
+      $4947:
+        begin // gif
+          result := TGIFImage;
+        end;
+      $D8FF:
+        begin // JPg
+          result := TJpegImage;
+        end;
+      $5089:
+        begin // png
+          result := TPNGObject;
+        end;
+      $0000:
+        begin // ico
+          result := TIcon;
+        end;
+    end;
+    AStream.Position := 0;
+
+  end;
+
+var
+  sm: TMemoryStream;
+  gclass: TGraphicClass;
+begin
+  result := nil;
+  sm := TMemoryStream.create;
+  try
+    sm.LoadFromFile(file_name);
+    sm.Position := 0;
+
+    // 谁获取 ,谁释放
+    gclass := GetImgType(sm);
+    if gclass <> nil then
+    begin
+      result := gclass.create;
+      result.loadfromstream(sm);
+    end;
+
+  finally
+    sm.free;
+  end;
+end;
+
+function thead.get_resbmp(filename: string; index: Integer): tbitmap;
+var
+  bmp: tbitmap;
+begin
+  bmp := get_separator_bitmap(tbitmap(getimage(filename)), index, true);
+  result := bmp;
+end;
+
+function thead.get_separator_bitmap(abmp: tbitmap; aindex: Integer; freebmp: boolean): tbitmap;
+var
+  bmp1: tbitmap;
+begin
+
+  bmp1 := tbitmap.create();
+  result := bmp1;
+  if abmp = nil then
+    Exit;
+  bmp1.Width := abmp.Height;
+  bmp1.Height := abmp.Height;
+
+  bitblt(bmp1.canvas.Handle, 0, 0, bmp1.Width, bmp1.Height, abmp.canvas.Handle, aindex * bmp1.Width, 0, srccopy);
+  if freebmp then
+    abmp.free;
+
+end;
+
+{ trawdata }
+// g_global.imp.OrganizationDepartMember.Persons.Add(departMember.user_id, departMember);
+procedure trawdata.add_room_member(roomid, user_id: string);
+var
+  v: troom_info;
+  Value: string;
+begin
+  Value := '';
+  v := g_global.imp.rawdata.get_room(roomid);
+
+  v.members := v.members + ',' + user_id;
+
+  v.members := Value;
+
+  g_global.imp.rawdata.update_room(v);
+
+end;
+
+procedure trawdata.del_room(groupid: string);
+var
+  departmember: troom_info;
+begin
+
+  for departmember in rooms_list.values do
+  begin
+    if departmember.room_id = groupid then
+    begin
+      rooms_list.Remove(groupid);
+      break;
+    end;
+  end;
+
+end;
+
+function trawdata.get_employee(uid: string): temploye;
+var
+  departmember: temploye;
+begin
+  for departmember in employees.values do
+  begin
+    if departmember.user_id = uid then
+    begin
+      result := departmember;
+      break;
+    end;
+  end;
+
+end;
+
+function trawdata.get_room(groupid: string): troom_info;
+var
+  groupmember: troom_info;
+begin
+  //不存在这个房间
+  Result.is_enable := -2;
+  for groupmember in rooms_list.values do
+  begin
+    if groupmember.room_id = groupid then
+    begin
+      result := groupmember;
+      break;
+    end;
+  end;
+
+end;
+
+procedure trawdata.update_room(v: troom_info);
+var
+  departmember: troom_info;
+begin
+
+  for departmember in rooms_list.values do
+  begin
+    if departmember.room_id = v.room_id then
+    begin
+      rooms_list.addorsetvalue(v.room_id, v);
+      break;
+    end;
+  end;
+
+end;
+
+procedure trawdata.update_employee(v: temploye);
+var
+  departmember: temploye;
+begin
+
+  for departmember in employees.values do
+  begin
+    if departmember.user_id = v.user_id then
+    begin
+      employees.addorsetvalue(v.user_id, v);
+      break;
+    end;
+  end;
+
+end;
+
+{ tred_dot_list }
+
+initialization
+  g_global.imp.imp_head.temote_filename := tdictionary<string, string>.create;
+
+
+
+  InitializeCriticalSection(g_global.imp.g_pulldata_lock);
+
+  g_global.imp.g_pulldata := TQueue<tpush_pack>.create;
+
+  g_global.imp.login_state.tcp_connected := false;
+  g_global.imp.login_state.logined := false;
+ 
+  g_global.imp.create;
+
+  g_global.imp.rawdata.employees := tdictionary<string, temploye>.create;
+
+  g_global.imp.rawdata.rooms_list := tdictionary<string, troom_info>.create;
+
+  g_global.imp.cloud.lock := tcriticalsection.create;
+
+  g_global.imp.http_pools.init;
+  JobThread := TJobThread.create;
+
+  var glAppPath := extractfilepath(application.exename);
+  if not FileExists(glAppPath + 'config.ini') then
+    application.Terminate;
+
+  with Tinifile.create(glAppPath + 'config.ini') do
+  begin
+    tcp_host := ReadString('set', 'ip', '127.0.0.1');
+    tcp_port := ReadInteger('set', 'port', 21000);
+
+    g_global.imp.cconst.nsq_host := 'http://' + ReadString('set', 'qrcode', '127.0.0.1');
+    g_global.imp.cconst.web_rest_host := 'http://' + ReadString('set', 'webip', '127.0.0.1');
+    g_global.imp.cconst.store_host := 'http://' + ReadString('set', 'storeip', '127.0.0.1');
+    g_global.imp.cconst.file_url_upload := g_global.imp.cconst.store_host + '/upload';
+    g_global.imp.cconst.head_url_upload := g_global.imp.cconst.store_host + '/head_up/';
+    g_global.imp.cconst.head_url_download := g_global.imp.cconst.store_host + '/head/';
+  end;
+
+finalization
+  DeleteCriticalSection(g_global.imp.g_pulldata_lock);
+
+  g_global.imp.g_pulldata.free;
+
+  g_global.imp.imp_head.temote_filename.free;
+  g_global.imp.destroy;
+  freeandnil(g_global.imp.cloud.lock);
+  freeandnil(g_global.imp.rawdata.employees);
+
+  freeandnil(g_global.imp.rawdata.rooms_list);
+
+  g_global.imp.http_pools.http_pools_dispose;
+  JobThread.CanTerminated := true;
+  JobThread.Terminate;
+  JobThread := nil;
+
+end.
+
+
+
+
+// test<T> = class
+// public
+// class function SetValue(a: T): T;
+// end;
+// txx<t,t1>=record
+// b:T1;
+// procedure setv(a:t;b:t1);
+// end;
+// var
+// Form1: TForm1;
+//
+// implementation
+//
+// {$R *.dfm}
+//
+// procedure TForm1.CheckType<T>;
+// var
+// p: PTypeInfo;
+// begin
+// p := System.TypeInfo(T);
+// case p.Kind of
+// tkInteger, tkInt64:
+// begin
+// case GetTypeData(p).OrdType of
+// otSByte:
+// ShowMessage('SByte');
+// otUByte:
+// ShowMessage('UByte');
+// otSWord:
+// ShowMessage('SWord');
+// otUWord:
+// ShowMessage('UWord');
+// otSLong:
+// ShowMessage('SLong');
+// otULong:
+// ShowMessage('ULong');
+// end;
+// end;
+// tkFloat:
+// begin
+// case GetTypeData(p).FloatType of
+// ftSingle:
+// ShowMessage('Single');
+// ftDouble:
+// ShowMessage('Double');
+// ftExtended:
+// ShowMessage('Extended');
+// ftComp:
+// ShowMessage('Comp');
+// ftCurr:
+// ShowMessage('Curr');
+// end;
+// end;
+// tkChar:
+// ShowMessage('Char');
+// tkWChar:
+// ShowMessage('WChar');
+//
+// tkEnumeration:
+// ShowMessage('Boolean'); //枚举类型或Boolean类型,需要加以区分
+// end;
+// end;
+//
+/// /function AddValue<integer>(a,b : T):T;
+/// /begin
+/// /  result := a + b;
+/// /end;
+// procedure TForm1.FormCreate(Sender: TObject);
+// var
+// b, c: Integer;
+// begin
+// c := 100;
+//
+// b := test<Integer>.SetValue(c);
+// end;
+//
+// { test<T> }
+//
+// class function test<T>.SetValue(a: T): T;
+// begin
+// Form1.CheckType<T>();
+/// /  if Form1.CheckType(a) then
+// result := a;
+// end;
+//
+// { txx<t> }
+//
+// procedure  txx<t,t1>.setv(a: t;b:t1);
+// begin
+// b:=b;
+//
+// end;
+//
+// end.
+
+
